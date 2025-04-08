@@ -1,31 +1,41 @@
-const users = [];
+const prisma = require('../prisma/client');
 
 // join user to chat
-function userJoin(id, username, room) {
-   const user = { id, username, room };
-
-   users.push(user);
-
-   return user;
+async function userJoin(id, username, room) {
+   return await prisma.user.create({
+      data: {
+         socketId: id,
+         username,
+         room
+      }
+   });
 }
 
 // get current user
-function getCurrentUser(id) {
-   return users.find((user) => user.id === id);
+async function getCurrentUser(id) {
+   return await prisma.user.findUnique({
+      where: {
+         socketId: id
+      }
+   });
 }
 
 // user leaves chat
-function userLeave(id) {
-   const index = users.findIndex((user) => user.id === id);
-
-   if (index !== -1) {
-      return users.splice(index, 1)[0];
-   }
+async function userLeave(id) {
+   return await prisma.user.delete({
+      where: {
+         socketId: id
+      }
+   });
 }
 
 // get room users
-function getRoomUsers(room) {
-   return users.filter((user) => user.room === room);
+async function getRoomUsers(room) {
+   return await prisma.user.findMany({
+      where: {
+         room: room
+      }
+   });
 }
 
 module.exports = {

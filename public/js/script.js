@@ -19,6 +19,18 @@ socket.on('roomUsers', ({ room, users }) => {
    outputUsers(users);
 });
 
+// Add room name to DOM
+function outputRoomName(room) {
+   roomName.innerText = room;
+}
+
+// Add users to DOM
+function outputUsers(users) {
+   userList.innerHTML = users
+      .map(user => `<li>${user.username}</li>`)
+      .join('');
+}
+
 // message from server
 socket.on('message', (message) => {
    // console.log(message);
@@ -32,7 +44,7 @@ socket.on('message', (message) => {
 chatForm.addEventListener('submit', (e) => {
    e.preventDefault();
 
-   // het message text
+   // hit message text
    const msg = e.target.elements.msg.value;
 
    // emit message to server
@@ -46,23 +58,45 @@ chatForm.addEventListener('submit', (e) => {
 // output msg to DOM
 function outputMessage(message) {
    const div = document.createElement('div');
-   div.classList.add('message');
-   div.innerHTML = ` <p class="meta">${message.username} <span>${message.time}</span></p>
-   <p class="text">
-      ${message.text}
-   </p>`;
+   
+   if (message.username === 'chatterbox Bot') {
+      if (message.text.toLowerCase().includes('has left')) {
+         div.className = 'message leave-message';
+      } else if (message.text.toLowerCase().includes('has joined')) {
+         div.className = 'message join-message';
+      } else {
+         div.className = 'message bot-message';
+      }
+   } else if (message.username === username) {
+      div.className = 'message user-message';
+   } else {
+      div.className = 'message other-message';
+   }
+
+   div.innerHTML = `
+      <p class="meta">${message.username} <span>${message.time}</span></p>
+      <p class="text">${message.text}</p>
+   `;
 
    document.querySelector('.chat-messages').appendChild(div);
 }
 
-// add room name to DOM
-function outputRoomName(room) {
-   roomName.innerHTML = room;
-}
-
-// add users to DOM
-function outputUsers(users) {
-   userList.innerHTML = `
-      ${users.map((user) => `<li>${user.username}</li>`).join('')}
-   `;
+// Load chat history when joining room
+async function loadChatHistory(room) {
+  try {
+    const response = await fetch(`/api/chat-history/${room}`);
+    const messages = await response.json();
+    
+    messages.forEach(message => {
+      outputMessage({
+        username: message.username,
+        text: message.text,
+        time: moment(message.time).format('h:mm a')
+      });
+    });
+    
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  } catch (error) {
+    console.error('Error loading chat history:', error);
+  }
 }
