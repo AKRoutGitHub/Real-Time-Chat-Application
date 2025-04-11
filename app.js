@@ -8,7 +8,12 @@ const prisma = require('./prisma/client');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = require('socket.io')(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
 // set static file
 app.use(express.static(path.join(__dirname, 'public')));
@@ -17,37 +22,22 @@ app.use(express.static(path.join(__dirname, 'public')));
 const botName = 'ChatBot';
 
 // Run when client connects
+// At the top of your file
+const debug = require('debug')('app:socket');
+
 io.on('connection', (socket) => {
+  debug('New client connected');
+  
   socket.on('joinRoom', async ({ username, room }) => {
+    debug(`User ${username} joining room ${room}`);
     try {
-      // First try to find if user exists
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          username: username
+      const user = await prisma.user.create({
+        data: {
+          username,
+          room,
+          socketId: socket.id
         }
       });
-
-      let user;
-      if (existingUser) {
-        // Update existing user with new socket ID and room
-        user = await prisma.user.update({
-          where: { username: username },
-          data: {
-            socketId: socket.id,
-            room: room
-          }
-        });
-      } else {
-        // Create new user if doesn't exist
-        user = await prisma.user.create({
-          data: {
-            socketId: socket.id,
-            username,
-            room
-          }
-        });
-      }
-
       socket.join(user.room);
 
       // Welcome current user
@@ -71,19 +61,20 @@ io.on('connection', (socket) => {
         users
       });
     } catch (error) {
-      console.error('Error joining room:', error);
+      console.error('Database error:', error);
     }
   });
 
-  // Listen for chatMessage
+  // When sending messages
   socket.on('chatMessage', async (msg) => {
     try {
-      const user = await prisma.user.findUnique({
-        where: { socketId: socket.id }
+      const user = await prisma.user.findFirst({
+        where: {
+          socketId: socket.id
+        }
       });
-
+      
       if (user) {
-        // Store message in database
         await prisma.message.create({
           data: {
             text: msg,
@@ -91,11 +82,11 @@ io.on('connection', (socket) => {
             room: user.room
           }
         });
-
+        
         io.to(user.room).emit('message', formatMessage(user.username, msg));
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('Database error:', error);
     }
   });
 

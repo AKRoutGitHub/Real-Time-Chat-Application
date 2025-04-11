@@ -20,4 +20,4 @@ model User {
   username String   @unique
   room     String
   socketId String   @unique
-} 
+}
