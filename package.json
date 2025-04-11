@@ -4,6 +4,12 @@
   "description": "Real-time chat application with Socket.IO",
   "main": "app.js",
   "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
     "test": "jest",
@@ -303,5 +309,7 @@
   "bugs": {
     "url": "https://github.com/AKRoutGitHub/Real-Time-Chat-Application/issues"
   },
-  "homepage": "https://github.com/AKRoutGitHub/Real-Time-Chat-Application#readme"
+  "homepage": "https://github.com/AKRoutGitHub/Real-Time-Chat-Application#readme",
+  "keywords": [],
+  "license": "ISC"
 }
