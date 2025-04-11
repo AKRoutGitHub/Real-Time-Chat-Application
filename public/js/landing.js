@@ -41,4 +41,21 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('username').value = lastUsername;
     }
   }
-}); 
+  
+  // Add smooth transition when submitting the form
+  document.querySelector('.join-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      document.body.classList.add('fade-out');
+      setTimeout(() => {
+          this.submit();
+      }, 300);
+  });
+  
+  // Add fade-in effect when page loads
+  document.addEventListener('DOMContentLoaded', function() {
+      document.body.style.opacity = 0;
+      setTimeout(() => {
+          document.body.style.opacity = 1;
+      }, 100);
+  });
+});

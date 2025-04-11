@@ -100,3 +100,12 @@ async function loadChatHistory(room) {
     console.error('Error loading chat history:', error);
   }
 }
+
+// Add this at the beginning of the file
+document.querySelector('.btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.body.classList.add('fade-out');
+    setTimeout(() => {
+        window.location.href = this.getAttribute('href');
+    }, 300);
+});
