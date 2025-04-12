@@ -9,15 +9,18 @@ const { username, room } = Qs.parse(location.search, {
 });
 
 // Update the Socket.IO connection
-const socket = io(window.location.origin, {
+const socket = io({
   transports: ['websocket', 'polling'],
   reconnectionAttempts: 5,
-  reconnectionDelay: 1000
+  reconnectionDelay: 1000,
+  timeout: 20000
 });
 
 // Add connection status handling
 socket.on('connect_error', (error) => {
   console.error('Connection Error:', error);
+  // Optionally display an error message to the user
+  alert('Connection error. Please refresh the page.');
 });
 
 socket.on('connect', () => {

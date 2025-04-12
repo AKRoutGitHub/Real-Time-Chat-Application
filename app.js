@@ -144,4 +144,28 @@ app.get('/api/chat-history/:room', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Add this near the top of your file after requiring prisma
+prisma.$on('error', (e) => {
+  console.error('Prisma Error:', e);
+});
+
+// Add this before your server.listen call
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Add this before server.listen
+async function checkDatabaseConnection() {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    console.log('Database connection successful');
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    process.exit(1); // Exit if database connection fails
+  }
+}
+
+// Update your server.listen
+checkDatabaseConnection().then(() => {
+  server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+});
