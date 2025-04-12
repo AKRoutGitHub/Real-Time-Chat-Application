@@ -8,8 +8,20 @@ const { username, room } = Qs.parse(location.search, {
    ignoreQueryPrefix: true,
 });
 
+// Update the Socket.IO connection
 const socket = io(window.location.origin, {
-  transports: ['websocket', 'polling']
+  transports: ['websocket', 'polling'],
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000
+});
+
+// Add connection status handling
+socket.on('connect_error', (error) => {
+  console.error('Connection Error:', error);
+});
+
+socket.on('connect', () => {
+  console.log('Connected to server');
 });
 
 // Join chatroom
